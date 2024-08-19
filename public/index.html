@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Username Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: auto; padding: 20px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 8px; }
+        .message { margin-top: 20px; }
+        .username-list { margin-top: 20px; }
+        .username-list table { width: 100%; border-collapse: collapse; }
+        .username-list th, .username-list td { padding: 10px; border: 1px solid #ddd; }
+        .username-list th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Twitter Username Tracker</h1>
+        <div class="form-group">
+            <label for="username">Enter Twitter Username:</label>
+            <input type="text" id="username" name="username" placeholder="@username">
+        </div>
+        <button onclick="submitUsername()">Submit</button>
+        <div class="message" id="message"></div>
+        <div class="username-list">
+            <h2>List of Followed Usernames</h2>
+            <table id="usernameTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function submitUsername() {
+            const username = document.getElementById('username').value;
+            if (!username.startsWith('@') || username.includes(' ')) {
+                document.getElementById('message').innerText = 'Invalid username format.';
+                return;
+            }
+
+            const response = await fetch(`/check-username?username=${encodeURIComponent(username)}`);
+            const result = await response.json();
+
+            if (result.exists) {
+                document.getElementById('message').innerText = 'Username already followed.';
+            } else {
+                const addResponse = await fetch('/add-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const addResult = await addResponse.json();
+
+                document.getElementById('message').innerText = addResult.message;
+
+                if (addResult.success) {
+                    loadUsernames();
+                }
+            }
+        }
+
+        async function loadUsernames() {
+            const response = await fetch('/list-usernames');
+            const usernames = await response.json();
+            const tableBody = document.querySelector('#usernameTable tbody');
+            tableBody.innerHTML = '';
+            usernames.forEach(user => {
+                const row = `<tr>
+                    <td>${user.username}</td>
+                    <td>${new Date(user.added_on).toLocaleString()}</td>
+                </tr>`;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUsernames);
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "twitter-username-tracker",
+  "version": "1.0.0",
+  "description": "A simple app to track Twitter usernames",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "sqlite3": "^5.0.2",
+    "body-parser": "^1.19.1"
+  }
+}
